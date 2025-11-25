@@ -1,8 +1,8 @@
-# Como Configurar o Repositório GitLab no ArgoCD
+# Como Configurar o Repositório GitHub no ArgoCD
 
 ## 📋 Informações do Repositório
 
-- **URL:** `https://gitlab-dti.agu.gov.br/hebert.silva/infra.git`
+- **URL:** `https://github.com/hebert-lucena/infra.git`
 - **Tipo:** Git
 - **Branch padrão:** `main`
 
@@ -28,27 +28,30 @@
    
    **Repository URL:** 
    ```
-   https://gitlab-dti.agu.gov.br/hebert.silva/infra.git
+   https://github.com/hebert-lucena/infra.git
    ```
    
    **Type:** `git`
    
    **Project:** `default` (ou selecione um projeto específico)
    
-   **Username:** `hebert.silva` (seu usuário do GitLab)
+   **Username:** `hebert-lucena` (seu usuário do GitHub)
    
-   **Password:** Sua senha do GitLab OU um **Personal Access Token** (recomendado)
+   **Password:** Use um **Personal Access Token** (obrigatório para repositórios privados)
 
-### Passo 3: Usar Personal Access Token (Recomendado)
+### Passo 3: Criar Personal Access Token (Obrigatório)
 
-Para maior segurança, use um Personal Access Token ao invés da senha:
+O GitHub exige Personal Access Token para autenticação:
 
-1. No GitLab, vá em **Settings** > **Access Tokens**
-2. Crie um novo token com as permissões:
-   - `read_repository`
-   - `read_api`
-3. Copie o token gerado
-4. No ArgoCD, use o token como senha
+1. No GitHub, vá em **Settings** (seu perfil) > **Developer settings** > **Personal access tokens** > **Tokens (classic)**
+2. Clique em **Generate new token (classic)**
+3. Dê um nome ao token: `ArgoCD-Infra`
+4. Selecione as permissões:
+   - `repo` (acesso completo aos repositórios privados)
+   - Ou apenas `public_repo` (se o repositório for público)
+5. Clique em **Generate token**
+6. **Copie o token imediatamente** (você só verá uma vez)
+7. No ArgoCD, use o token como senha
 
 ### Passo 4: Verificar Conexão
 
@@ -90,19 +93,10 @@ argocd login localhost:8080 --username admin --password U1FXHbyMSNITh0WA --insec
 
 ### Passo 3: Adicionar Repositório
 
-**Com usuário e senha:**
+**Com Personal Access Token (obrigatório):**
 ```bash
-argocd repo add https://gitlab-dti.agu.gov.br/hebert.silva/infra.git \
-  --username hebert.silva \
-  --password SUA_SENHA \
-  --type git \
-  --name infra
-```
-
-**Com Personal Access Token (recomendado):**
-```bash
-argocd repo add https://gitlab-dti.agu.gov.br/hebert.silva/infra.git \
-  --username hebert.silva \
+argocd repo add https://github.com/hebert-lucena/infra.git \
+  --username hebert-lucena \
   --password SEU_TOKEN \
   --type git \
   --name infra
@@ -115,7 +109,7 @@ argocd repo add https://gitlab-dti.agu.gov.br/hebert.silva/infra.git \
 argocd repo list
 
 # Ver detalhes de um repositório
-argocd repo get https://gitlab-dti.agu.gov.br/hebert.silva/infra.git
+argocd repo get https://github.com/hebert-lucena/infra.git
 ```
 
 ---
@@ -130,16 +124,16 @@ Crie o arquivo `argocd-repo-secret.yaml`:
 apiVersion: v1
 kind: Secret
 metadata:
-  name: gitlab-repo-secret
+  name: github-repo-secret
   namespace: argocd
   labels:
     argocd.argoproj.io/secret-type: repository
 type: Opaque
 stringData:
   type: git
-  url: https://gitlab-dti.agu.gov.br/hebert.silva/infra.git
-  password: SEU_TOKEN_OU_SENHA
-  username: hebert.silva
+  url: https://github.com/hebert-lucena/infra.git
+  password: SEU_PERSONAL_ACCESS_TOKEN
+  username: hebert-lucena
 ```
 
 **Aplicar:**
@@ -160,7 +154,7 @@ kubectl get secrets -n argocd -l argocd.argoproj.io/secret-type=repository
 ### Via Interface Web:
 
 1. Acesse **Settings** > **Repositories**
-2. Procure por `https://gitlab-dti.agu.gov.br/hebert.silva/infra.git`
+2. Procure por `https://github.com/hebert-lucena/infra.git`
 3. O status deve estar **Successful** (ícone verde)
 
 ### Via CLI:
@@ -188,7 +182,7 @@ Via Interface Web:
 2. Preencha:
    - **Application Name:** `airflow`
    - **Project:** `default`
-   - **Repository URL:** `https://gitlab-dti.agu.gov.br/hebert.silva/infra.git`
+   - **Repository URL:** `https://github.com/hebert-lucena/infra.git`
    - **Path:** `charts/airflow`
    - **Cluster URL:** `https://kubernetes.default.svc`
    - **Namespace:** `airflow`
@@ -197,7 +191,7 @@ Via Interface Web:
 Via CLI:
 ```bash
 argocd app create airflow \
-  --repo https://gitlab-dti.agu.gov.br/hebert.silva/infra.git \
+  --repo https://github.com/hebert-lucena/infra.git \
   --path charts/airflow \
   --dest-server https://kubernetes.default.svc \
   --dest-namespace airflow \
@@ -221,9 +215,10 @@ argocd app create airflow \
 
 ### Erro: "repository not accessible"
 
-- Verifique se o usuário/senha está correto
-- Teste a conexão manualmente: `git clone https://gitlab-dti.agu.gov.br/hebert.silva/infra.git`
-- Verifique se o token tem as permissões corretas
+- Verifique se o Personal Access Token está correto
+- Teste a conexão manualmente: `git clone https://github.com/hebert-lucena/infra.git`
+- Verifique se o token tem a permissão `repo` (para repositórios privados)
+- Se o repositório for público, use `public_repo`
 
 ### Erro: "authentication failed"
 

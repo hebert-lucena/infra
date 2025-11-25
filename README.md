@@ -308,9 +308,9 @@ minikube service airflow-web -n airflow
 argocd login <ARGOCD_SERVER> --username admin --password <SENHA>
 
 # Adicionar repositório GitLab
-argocd repo add https://gitlab-dti.agu.gov.br/hebert.silva/infra.git \
-  --username <SEU_USUARIO> \
-  --password <SUA_SENHA> \
+argocd repo add https://github.com/hebert-lucena/infra.git \
+  --username hebert-lucena \
+  --password <SEU_PERSONAL_ACCESS_TOKEN> \
   --type git
 ```
 
@@ -322,7 +322,7 @@ argocd repo add https://gitlab-dti.agu.gov.br/hebert.silva/infra.git \
 4. Preencha:
    - **Type:** Git
    - **Project:** default
-   - **Repository URL:** `https://gitlab-dti.agu.gov.br/hebert.silva/infra.git`
+   - **Repository URL:** `https://github.com/hebert-lucena/infra.git`
    - **Username:** Seu usuário GitLab
    - **Password:** Sua senha ou token de acesso
 
@@ -332,7 +332,7 @@ argocd repo add https://gitlab-dti.agu.gov.br/hebert.silva/infra.git \
 
 ```bash
 argocd app create airflow \
-  --repo https://gitlab-dti.agu.gov.br/hebert.silva/infra.git \
+  --repo https://github.com/hebert-lucena/infra.git \
   --path charts/airflow \
   --dest-server https://kubernetes.default.svc \
   --dest-namespace airflow \
@@ -356,7 +356,7 @@ metadata:
 spec:
   project: default
   source:
-    repoURL: https://gitlab-dti.agu.gov.br/hebert.silva/infra.git
+    repoURL: https://github.com/hebert-lucena/infra.git
     targetRevision: main
     path: charts/airflow
     helm:
