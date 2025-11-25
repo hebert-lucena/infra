@@ -1,19 +1,59 @@
+# ==============================================================================
+# ARGOCD HELM CHART - VALUES.YAML
+# ==============================================================================
+# Este arquivo contém as configurações para o ArgoCD em ambiente LOCAL.
+# 
+# IMPORTANTE PARA PRODUÇÃO:
+# 1. Remover ou comentar a flag --insecure do extraArgs
+# 2. Configurar ingress adequado (TLS/HTTPS obrigatório)
+# 3. Aumentar recursos conforme carga esperada
+# 4. Configurar autenticação OIDC/SAML via Dex
+# 5. Usar secrets do Kubernetes para senhas sensíveis
+# 6. Habilitar RBAC e políticas de segurança
+# 7. Configurar backup do Redis e dados persistentes
+# 8. Usar LoadBalancer ou Ingress Controller em vez de NodePort
+# ==============================================================================
+
 # Configurações do servidor ArgoCD
 server:
   service:
+    # PRODUÇÃO: Usar LoadBalancer ou Ingress Controller
+    # LOCAL: NodePort para acesso direto
     type: NodePort
     nodePorts:
-      http: 30080
-      https: 30443
+      http: 30080   # PRODUÇÃO: Remover, usar apenas HTTPS via Ingress
+      https: 30443  # PRODUÇÃO: Remover, usar apenas HTTPS via Ingress
   
   ingress:
+    # PRODUÇÃO: Habilitar e configurar TLS
+    #   enabled: true
+    #   className: nginx
+    #   annotations:
+    #     cert-manager.io/cluster-issuer: letsencrypt-prod
+    #   hosts:
+    #     - host: argocd.example.com
+    #       paths:
+    #         - path: /
+    #           pathType: Prefix
+    #   tls:
+    #     - secretName: argocd-tls
+    #       hosts:
+    #         - argocd.example.com
     enabled: false
   
   # Configurações para ambiente local
+  # PRODUÇÃO: REMOVER --insecure e usar TLS adequado
   extraArgs:
-    - --insecure
+    - --insecure  # ⚠️ REMOVER EM PRODUÇÃO - Usar apenas em ambiente local
   
   # Recursos
+  # PRODUÇÃO: Aumentar conforme carga esperada
+  #   limits:
+  #     cpu: 2000m
+  #     memory: 2Gi
+  #   requests:
+  #     cpu: 1000m
+  #     memory: 1Gi
   resources:
     limits:
       cpu: 500m
@@ -24,6 +64,7 @@ server:
 
 # Configurações do repo server
 repoServer:
+  # PRODUÇÃO: Aumentar recursos e considerar múltiplas réplicas para HA
   resources:
     limits:
       cpu: 500m
@@ -34,6 +75,10 @@ repoServer:
 
 # Configurações do application controller
 controller:
+  # PRODUÇÃO: 
+  # - Aumentar recursos conforme número de aplicações
+  # - Considerar múltiplas réplicas para HA (usar StatefulSet)
+  # - Configurar processamento paralelo
   resources:
     limits:
       cpu: 500m
@@ -45,6 +90,11 @@ controller:
 # Configurações do Redis
 redis:
   enabled: true
+  # PRODUÇÃO:
+  # - Habilitar autenticação (auth.enabled: true, configurar senha)
+  # - Usar Redis externo gerenciado para HA
+  # - Configurar backup automático
+  # - Aumentar recursos conforme carga
   resources:
     limits:
       cpu: 200m
@@ -56,6 +106,10 @@ redis:
 # Configurações do Dex (OIDC)
 dex:
   enabled: true
+  # PRODUÇÃO:
+  # - Configurar integração com provedor OIDC/SAML (LDAP, GitHub, GitLab, etc.)
+  # - Configurar grupos e permissões RBAC
+  # - Habilitar SSO
   resources:
     limits:
       cpu: 200m
@@ -63,3 +117,39 @@ dex:
     requests:
       cpu: 100m
       memory: 64Mi
+
+# ==============================================================================
+# CONFIGURAÇÕES ADICIONAIS PARA PRODUÇÃO (descomentar e configurar):
+# ==============================================================================
+#
+# configs:
+#   # Configurar senha do admin via secret
+#   secret:
+#     argocdServerAdminPassword: ""  # Usar secret do Kubernetes
+#   
+#   # Configurar políticas RBAC
+#   rbac:
+#     policy.default: role:readonly
+#     policy.csv: |
+#       p, role:org-admin, applications, *, */*, allow
+#       p, role:org-admin, repositories, *, *, allow
+#   
+#   # Configurar repositórios Git
+#   repositories: |
+#     - url: https://gitlab-dti.agu.gov.br/hebert.silva/infra.git
+#       type: git
+#       name: infra
+#
+# # Configurar backup automático
+# backup:
+#   enabled: true
+#   schedule: "0 2 * * *"  # Diariamente às 2h
+#   retention: 7d
+#
+# # Configurar monitoramento (Prometheus)
+# metrics:
+#   enabled: true
+#   serviceMonitor:
+#     enabled: true
+#
+# ==============================================================================

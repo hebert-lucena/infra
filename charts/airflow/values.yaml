@@ -1,14 +1,46 @@
+# ==============================================================================
+# AIRFLOW HELM CHART - VALUES.YAML
+# ==============================================================================
+# Este arquivo contém as configurações para o Apache Airflow em ambiente LOCAL.
+# 
+# IMPORTANTE PARA PRODUÇÃO:
+# 1. Alterar executor para CeleryExecutor ou KubernetesExecutor
+# 2. Configurar autenticação adequada (LDAP, OAuth, etc.)
+# 3. Aumentar recursos conforme carga de DAGs
+# 4. Configurar banco de dados externo (não usar PostgreSQL interno)
+# 5. Configurar Redis/RabbitMQ externo para Celery
+# 6. Habilitar ingress com TLS/HTTPS
+# 7. Configurar backup automático do banco de dados
+# 8. Usar secrets do Kubernetes para credenciais
+# 9. Configurar políticas de rede e segurança
+# 10. Habilitar monitoramento e alertas
+# ==============================================================================
+
 airflow:
   # Versão do Airflow (>=3.0)
+  # PRODUÇÃO: Usar versão estável e testada, considerar pinning exato
   image:
-    tag: "3.0.0"
+    tag: "3.0.5-debian-12-r0"  # PRODUÇÃO: Fixar versão específica
   
   # Executor
-  executor: "LocalExecutor"
+  # LOCAL: LocalExecutor (simples, sem workers separados)
+  # PRODUÇÃO: 
+  #   - CeleryExecutor: Para múltiplos workers escaláveis
+  #   - KubernetesExecutor: Para execução em pods do K8s (recomendado)
+  executor: "LocalExecutor"  # PRODUÇÃO: Alterar para "CeleryExecutor" ou "KubernetesExecutor"
   
   # Configurações do webserver
   webserver:
-    replicas: 1
+    # PRODUÇÃO: Múltiplas réplicas para HA
+    replicas: 1  # PRODUÇÃO: Aumentar para 2-3 réplicas
+    
+    # PRODUÇÃO: Aumentar recursos conforme tráfego
+    #   limits:
+    #     cpu: 2000m
+    #     memory: 4Gi
+    #   requests:
+    #     cpu: 1000m
+    #     memory: 2Gi
     resources:
       limits:
         cpu: 1000m
@@ -18,15 +50,43 @@ airflow:
         memory: 512Mi
     
     service:
+      # PRODUÇÃO: Usar LoadBalancer ou Ingress Controller
+      # LOCAL: NodePort para acesso direto
       type: NodePort
-      nodePort: 30808
+      nodePort: 30808  # PRODUÇÃO: Remover, usar apenas HTTPS via Ingress
+    
+    # PRODUÇÃO: Configurar ingress com TLS
+    # ingress:
+    #   enabled: true
+    #   className: nginx
+    #   annotations:
+    #     cert-manager.io/cluster-issuer: letsencrypt-prod
+    #   hosts:
+    #     - host: airflow.example.com
+    #       paths:
+    #         - path: /
+    #           pathType: Prefix
+    #   tls:
+    #     - secretName: airflow-tls
+    #       hosts:
+    #         - airflow.example.com
     
     # Permitir acesso local
-    allowPodLaunching: true
+    # PRODUÇÃO: Desabilitar ou restringir
+    allowPodLaunching: true  # ⚠️ PRODUÇÃO: false ou configurar políticas adequadas
   
   # Configurações do scheduler
   scheduler:
-    replicas: 1
+    # PRODUÇÃO: Múltiplas réplicas para HA (Airflow 2.0+)
+    replicas: 1  # PRODUÇÃO: Aumentar para 2 réplicas
+    
+    # PRODUÇÃO: Aumentar recursos conforme número de DAGs
+    #   limits:
+    #     cpu: 2000m
+    #     memory: 4Gi
+    #   requests:
+    #     cpu: 1000m
+    #     memory: 2Gi
     resources:
       limits:
         cpu: 1000m
@@ -38,7 +98,9 @@ airflow:
   # Configurações do triggerer (para Airflow 3.0+)
   triggerer:
     enabled: true
-    replicas: 1
+    # PRODUÇÃO: Múltiplas réplicas para HA
+    replicas: 1  # PRODUÇÃO: Aumentar para 2 réplicas
+    
     resources:
       limits:
         cpu: 500m
@@ -48,19 +110,50 @@ airflow:
         memory: 256Mi
   
   # Configurações do executor local
+  # PRODUÇÃO: Habilitar workers para CeleryExecutor
   workers:
-    enabled: false
+    enabled: false  # PRODUÇÃO: true para CeleryExecutor
+    # PRODUÇÃO: Configurar workers:
+    #   replicas: 3
+    #   resources:
+    #     limits:
+    #       cpu: 2000m
+    #       memory: 4Gi
+    #     requests:
+    #       cpu: 1000m
+    #       memory: 2Gi
   
   # Configurações do banco de dados PostgreSQL
   postgresql:
+    # PRODUÇÃO: Usar banco de dados externo gerenciado
+    #   enabled: false
+    #   externalDatabase:
+    #     host: postgresql-prod.example.com
+    #     port: 5432
+    #     database: airflow
+    #     user: airflow
+    #     passwordSecret: airflow-postgres-secret
+    #     passwordKey: password
     enabled: true
+    
+    # PRODUÇÃO: Usar secrets do Kubernetes, nunca hardcoded
     auth:
-      postgresPassword: "airflow"
+      postgresPassword: "airflow"  # ⚠️ PRODUÇÃO: Usar secret
       database: "airflow"
       username: "airflow"
-      password: "airflow"
+      password: "airflow"  # ⚠️ PRODUÇÃO: Usar secret
     
     primary:
+      # PRODUÇÃO: Aumentar recursos e configurar HA
+      #   resources:
+      #     limits:
+      #       cpu: 2000m
+      #       memory: 4Gi
+      #     requests:
+      #       cpu: 1000m
+      #       memory: 2Gi
+      #   persistence:
+      #     size: 100Gi  # Ajustar conforme necessidade
       resources:
         limits:
           cpu: 500m
@@ -73,21 +166,70 @@ airflow:
   logs:
     persistence:
       enabled: true
-      size: 10Gi
-      storageClassName: "standard"
+      # PRODUÇÃO: Aumentar tamanho conforme necessidade
+      size: 10Gi  # PRODUÇÃO: 50-100Gi ou mais
+      storageClassName: "standard"  # PRODUÇÃO: Usar storage class adequado (SSD, etc.)
   
   # Configurações de DAGs
   dags:
     persistence:
       enabled: true
-      size: 5Gi
-      storageClassName: "standard"
+      # PRODUÇÃO: Aumentar tamanho conforme número de DAGs
+      size: 5Gi  # PRODUÇÃO: 20-50Gi ou mais
+      storageClassName: "standard"  # PRODUÇÃO: Usar storage class adequado
   
   # Configurações gerais
-  defaultAirflowTag: "3.0.0"
+  defaultAirflowTag: "3.0.5-debian-12-r0"  # PRODUÇÃO: Fixar versão
   defaultAirflowRepository: "bitnami/airflow"
   
   # Configurações de segurança
   securityContext:
     runAsUser: 1001
     fsGroup: 1001
+
+# ==============================================================================
+# CONFIGURAÇÕES ADICIONAIS PARA PRODUÇÃO (descomentar e configurar):
+# ==============================================================================
+#
+# # Configurar autenticação
+# webserver:
+#   defaultUser:
+#     enabled: true
+#     role: Admin
+#     username: admin
+#     password: ""  # Usar secret
+#   
+#   # Configurar OAuth/LDAP
+#   auth:
+#     type: "ldap"  # ou "oauth", "github", etc.
+#     # ... configurações específicas
+#
+# # Configurar Celery (se usar CeleryExecutor)
+# celery:
+#   enabled: true
+#   brokerUrl: "redis://redis-external:6379/0"
+#   resultBackend: "db+postgresql://airflow:password@postgresql:5432/airflow"
+#
+# # Configurar monitoramento
+# metrics:
+#   enabled: true
+#   serviceMonitor:
+#     enabled: true
+#
+# # Configurar backup automático
+# backup:
+#   enabled: true
+#   schedule: "0 3 * * *"  # Diariamente às 3h
+#   retention: 30d
+#
+# # Configurar variáveis de ambiente
+# env:
+#   - name: AIRFLOW__CORE__EXECUTOR
+#     value: "CeleryExecutor"
+#   - name: AIRFLOW__CELERY__BROKER_URL
+#     valueFrom:
+#       secretKeyRef:
+#         name: airflow-secrets
+#         key: celery-broker-url
+#
+# ==============================================================================
