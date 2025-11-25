@@ -1,0 +1,79 @@
+# Helm - Dependências baixadas (charts comprimidos)
+charts/*/charts/*.tgz
+charts/*/charts/*.tar.gz
+*.tgz
+
+# Helm - Lock files (manter Chart.lock para reprodutibilidade, mas ignorar se necessário)
+# Chart.lock
+
+# Kubernetes
+*.kubeconfig
+kubeconfig
+.kube/
+
+# Secrets e configurações sensíveis
+secrets/
+*.secret.yaml
+*.secret.yml
+*.secret.yaml.example
+secrets.yaml
+secrets.yml
+.env
+.env.local
+.env.*.local
+
+# Logs
+*.log
+logs/
+*.log.*
+
+# IDEs e editores
+.vscode/
+.idea/
+*.swp
+*.swo
+*~
+.project
+.classpath
+.settings/
+*.sublime-project
+*.sublime-workspace
+
+# OS
+.DS_Store
+.DS_Store?
+._*
+.Spotlight-V100
+.Trashes
+ehthumbs.db
+Thumbs.db
+Desktop.ini
+
+# Temporários
+tmp/
+temp/
+*.tmp
+*.bak
+*.backup
+*.old
+
+# Arquivos de teste e debug
+test-results/
+coverage/
+.nyc_output/
+
+# Arquivos de build e cache
+dist/
+build/
+.cache/
+*.cache
+
+# Arquivos específicos do Windows
+$RECYCLE.BIN/
+*.lnk
+
+# Arquivos específicos do GitLab CI (se houver configurações locais)
+.gitlab-ci-local/
+
+# Arquivos de backup do Helm
+*.orig

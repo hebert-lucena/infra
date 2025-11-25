@@ -1,0 +1,93 @@
+airflow:
+  # Versão do Airflow (>=3.0)
+  image:
+    tag: "3.0.0"
+  
+  # Executor
+  executor: "LocalExecutor"
+  
+  # Configurações do webserver
+  webserver:
+    replicas: 1
+    resources:
+      limits:
+        cpu: 1000m
+        memory: 1Gi
+      requests:
+        cpu: 500m
+        memory: 512Mi
+    
+    service:
+      type: NodePort
+      nodePort: 30808
+    
+    # Permitir acesso local
+    allowPodLaunching: true
+  
+  # Configurações do scheduler
+  scheduler:
+    replicas: 1
+    resources:
+      limits:
+        cpu: 1000m
+        memory: 1Gi
+      requests:
+        cpu: 500m
+        memory: 512Mi
+  
+  # Configurações do triggerer (para Airflow 3.0+)
+  triggerer:
+    enabled: true
+    replicas: 1
+    resources:
+      limits:
+        cpu: 500m
+        memory: 512Mi
+      requests:
+        cpu: 250m
+        memory: 256Mi
+  
+  # Configurações do executor local
+  workers:
+    enabled: false
+  
+  # Configurações do banco de dados PostgreSQL
+  postgresql:
+    enabled: true
+    auth:
+      postgresPassword: "airflow"
+      database: "airflow"
+      username: "airflow"
+      password: "airflow"
+    
+    primary:
+      resources:
+        limits:
+          cpu: 500m
+          memory: 512Mi
+        requests:
+          cpu: 250m
+          memory: 256Mi
+  
+  # Configurações de logs
+  logs:
+    persistence:
+      enabled: true
+      size: 10Gi
+      storageClassName: "standard"
+  
+  # Configurações de DAGs
+  dags:
+    persistence:
+      enabled: true
+      size: 5Gi
+      storageClassName: "standard"
+  
+  # Configurações gerais
+  defaultAirflowTag: "3.0.0"
+  defaultAirflowRepository: "bitnami/airflow"
+  
+  # Configurações de segurança
+  securityContext:
+    runAsUser: 1001
+    fsGroup: 1001
