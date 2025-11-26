@@ -143,6 +143,11 @@ airflow:
       username: "airflow"
       password: "airflow"  # ⚠️ PRODUÇÃO: Usar secret
     
+    # Não sobrescrever image - usar valores padrão do chart Bitnami
+    # primary:
+    #   image:
+    #     tag: ""  # Deixar vazio para usar tag padrão
+    
     primary:
       # PRODUÇÃO: Aumentar recursos e configurar HA
       #   resources:
