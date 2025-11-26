@@ -19,9 +19,8 @@
 airflow:
   # Versão do Airflow (>=3.0)
   # PRODUÇÃO: Usar versão estável e testada, considerar pinning exato
-  image:
-    # Deixar vazio para usar a tag padrão do chart
-    # tag: ""  # PRODUÇÃO: Fixar versão específica quando disponível
+  # Usar valores padrão do chart Bitnami (não sobrescrever image)
+  # A tag padrão do chart será usada automaticamente
   
   # Executor
   # LOCAL: LocalExecutor (simples, sem workers separados)
@@ -180,8 +179,8 @@ airflow:
       storageClassName: "standard"  # PRODUÇÃO: Usar storage class adequado
   
   # Configurações gerais
-  # Deixar vazio para usar a tag padrão do chart
-  # defaultAirflowTag: ""  # PRODUÇÃO: Fixar versão quando disponível
+  # Removendo defaultAirflowTag para usar valor padrão do chart
+  # defaultAirflowTag: "3.0.5-debian-12-r0"  # PRODUÇÃO: Fixar versão quando disponível
   defaultAirflowRepository: "bitnami/airflow"
   
   # Configurações de segurança
