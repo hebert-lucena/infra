@@ -6,6 +6,6 @@ version: 1.0.0
 appVersion: "3.0.0"
 dependencies:
   - name: airflow
-    version: ">=1.0.0"
+    version: "24.3.4"  # Usar versão anterior com tags válidas
     repository: https://charts.bitnami.com/bitnami
 
